@@ -1,5 +1,7 @@
-import { GetServerSideProps } from 'next';
-import Head from 'next/head'
+import { GetServerSideProps } from "next";
+import Head from "next/head";
+import { checkToken } from "./api/refresh";
+import { serialize } from "cookie";
 
 export default function Home() {
   return (
@@ -11,17 +13,45 @@ export default function Home() {
       </Head>
       <p className="text-3xl font-bold">Test</p>
       <p className="text-2xl">Hello</p>
-     
     </>
-  )
+  );
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const headers = ctx.req.headers;
-  console.log(headers)
-  return {
-    props: {
+  const { accessToken, refreshToken } = ctx.req.cookies;
+  if (!accessToken) {
+    // const res = await fetch("/api/refresh");
+    // console.log(res);
+    if (refreshToken) {
+      const accessToken = await checkToken(refreshToken);
+      if (accessToken) {
+        ctx.res.setHeader("Set-Cookie", [
+          `${serialize("refreshToken", refreshToken)}; Path=/`,
+          `${serialize("accessToken", accessToken)}; Path=/`,
+        ]);
 
+        return {
+          props: {},
+        };
+      } else {
+        return {
+          redirect: {
+            permanent: false,
+            destination: "/login",
+          },
+        };
+      }
+    } else {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/login",
+        },
+      };
     }
   }
-}
+
+  return {
+    props: {},
+  };
+};

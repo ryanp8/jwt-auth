@@ -11,11 +11,12 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  name     String
-  email    String @unique
-  password String
-  todos    Todo[]
+  id           String  @id @default(uuid())
+  name         String?
+  username     String  @unique
+  password     String
+  refreshToken String?
+  todos        Todo[]
 }
 
 model Todo {
