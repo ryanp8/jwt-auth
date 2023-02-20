@@ -1,3 +1,4 @@
+import Router from 'next/router';
 import React from 'react';
 
 export default function login() {
@@ -13,6 +14,11 @@ export default function login() {
       }),
     });
     const json = await res.json();
+    if (res.status != 401) {
+      Router.push('/');
+    } else {
+      console.log('unable to create new user');
+    }
   };
 
   return (

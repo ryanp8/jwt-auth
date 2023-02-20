@@ -12,14 +12,14 @@ export async function checkToken(refreshToken: string): Promise<null | string> {
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET as string
     );
-    if (decoded) {
+    // if (decoded) {
       const accessToken = jwt.sign(
-        { data: decoded },
+        { data: decoded.data },
         process.env.ACCESS_TOKEN_SECRET as string,
         { expiresIn: 3 * 60 }
       );
       return accessToken;
-    }
+    // }
   } catch (err) {
     console.log("expired refresh token");
   }

@@ -1,7 +1,9 @@
 import React from "react";
 import { GetServerSideProps } from "next";
-import Router from 'next/router';
+import Router from "next/router";
 import jwt from "jsonwebtoken";
+import { checkToken } from "./api/refresh";
+import { serialize } from "cookie";
 
 export default function login() {
   const [usernameInput, setUsernameInput] = React.useState("");
@@ -15,7 +17,7 @@ export default function login() {
         password: passwordInput,
       }),
     });
-    Router.push('/');
+    Router.push("/");
   };
 
   return (
@@ -41,19 +43,34 @@ export default function login() {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { accessToken } = ctx.req.cookies;
+  const { accessToken, refreshToken } = ctx.req.cookies;
+  console.log(accessToken);
   if (accessToken) {
     try {
       const decoded = await jwt.verify(
         accessToken,
         process.env.ACCESS_TOKEN_SECRET as string
       );
-      console.log(decoded);
-      if (!decoded) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: "/",
+        },
+      };
+    } catch (err) {
+      console.log(err);
+      if (!refreshToken) {
         return {
           props: {},
         };
-      } else {
+      }
+      
+      const accessToken = await checkToken(refreshToken);
+      if (accessToken) {
+        ctx.res.setHeader("Set-Cookie", [
+          `${serialize("refreshToken", refreshToken)}; Path=/`,
+          `${serialize("accessToken", accessToken)}; Path=/`,
+        ]);
         return {
           redirect: {
             permanent: false,
@@ -61,8 +78,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
           },
         };
       }
-    } catch (err) {
-      console.log(err);
+      return { props: {} };
     }
   }
   return { props: {} };

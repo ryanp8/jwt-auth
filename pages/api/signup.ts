@@ -45,8 +45,10 @@ export default async function handler(
       },
     });
 
-    res.setHeader("Set-Cookie", serialize("refreshToken", refreshToken));
-    res.setHeader("Set-Cookie", serialize("accessToken", accessToken));
+    res.setHeader("Set-Cookie", [
+      `${serialize("refreshToken", refreshToken)}; Path=/`,
+      `${serialize("accessToken", accessToken)}; Path=/`,
+    ]);
 
     res.status(200).json({ message: "User successfully created" });
   } catch (err) {
