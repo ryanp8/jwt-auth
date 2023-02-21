@@ -9,7 +9,8 @@ export default function login() {
   const [usernameInput, setUsernameInput] = React.useState("");
   const [passwordInput, setPasswordInput] = React.useState("");
 
-  const submit = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
     const res = await fetch("/api/login", {
       method: "POST",
       body: JSON.stringify({
@@ -21,7 +22,7 @@ export default function login() {
   };
 
   return (
-    <>
+    <form>
       <h1>Login</h1>
       <input
         type="text"
@@ -37,8 +38,10 @@ export default function login() {
           setPasswordInput(e.target.value);
         }}
       ></input>
-      <button onClick={submit}>Login</button>
-    </>
+      <button type="submit" onClick={submit}>
+        Login
+      </button>
+    </form>
   );
 }
 
@@ -64,7 +67,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
           props: {},
         };
       }
-      
+
       const accessToken = await checkToken(refreshToken);
       if (accessToken) {
         ctx.res.setHeader("Set-Cookie", [

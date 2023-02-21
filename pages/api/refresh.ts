@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import { serialize } from "cookie";
 
 type ResData = {
@@ -11,7 +11,7 @@ export async function checkToken(refreshToken: string): Promise<null | string> {
     const decoded = await jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET as string
-    );
+    ) as JwtPayload;
     // if (decoded) {
       const accessToken = jwt.sign(
         { data: decoded.data },

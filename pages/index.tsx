@@ -3,7 +3,7 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { checkToken } from "./api/refresh";
 import { serialize } from "cookie";
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import { prisma } from "../prisma";
 
 export default function Home({ data }) {
@@ -15,7 +15,7 @@ export default function Home({ data }) {
     <>
       <p className="text-3xl font-bold">Test</p>
       <p className="text-2xl">Hello</p>
-      {data.todos.map((t: string) => (
+      {data && data.todos.map((t: string) => (
         <p>{t}</p>
       ))}
     </>
@@ -44,48 +44,14 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       const decoded = jwt.verify(
         accessToken,
         process.env.ACCESS_TOKEN_SECRET as string
-      );
-      // console.log('+++++++++decoded+++++++++', decoded)
+      ) as JwtPayload;
       const username: string = decoded.data;
-      // console.log("hello")
-      // if (decoded) {
-      // console.log('hello')
       const data = await queryData(username);
-      // console.log(todos);
-      // console.log('skdjf')
-      // console.log(todos);
+
       return {
         props: { data },
       };
     } catch {
-      //   else {
-      //     if (refreshToken) {
-      //       const accessToken = await checkToken(refreshToken);
-      //       if (accessToken) {
-      //         ctx.res.setHeader("Set-Cookie", [
-      //           `${serialize("refreshToken", refreshToken)}; Path=/`,
-      //           `${serialize("accessToken", accessToken)}; Path=/`,
-      //         ]);
-      //       }
-      //       else {
-      //         return {
-      //           redirect: {
-      //             permanent: false,
-      //             destination: '/login'
-      //           }
-      //         }
-      //       }
-      //     }
-      //     else {
-      //       return {
-      //         redirect: {
-      //           permanent: false,
-      //           destination: '/login'
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
       if (!refreshToken) {
         return {
           redirect: {
@@ -94,7 +60,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
           },
         };
       }
-      console.log("getting new access");
       const accessToken = await checkToken(refreshToken);
       if (accessToken) {
         ctx.res.setHeader("Set-Cookie", [
@@ -104,7 +69,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         const decoded = await jwt.verify(
           accessToken,
           process.env.ACCESS_TOKEN_SECRET as string
-        );
+        ) as JwtPayload;
         const todos = await queryData(decoded.data);
         return {
           props: { todos },
